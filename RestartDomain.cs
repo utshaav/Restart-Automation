@@ -7,12 +7,27 @@ public class RestartDomain : IDisposable
 {
     private readonly IWebDriver _driver;
     private readonly WebDriverWait _wait;
+    private string _url = "192.168.10.6:888";
+
+    public RestartDomain(string url, bool isManual) : this()
+    {
+        _url = url;
+        Console.WriteLine($"http://{url}/");
+        if (isManual)
+        {
+
+        }
+    }
+
     public RestartDomain()
     {
+        var baseDir = AppDomain.CurrentDomain.BaseDirectory;
         ChromeDriverService service = ChromeDriverService.CreateDefaultService();
         service.EnableVerboseLogging = false;
         service.SuppressInitialDiagnosticInformation = true;
         service.HideCommandPromptWindow = true;
+
+
         ChromeOptions options = new ChromeOptions();
         options.AddArguments("--incognito");
         options.PageLoadStrategy = PageLoadStrategy.Normal;
@@ -27,10 +42,9 @@ public class RestartDomain : IDisposable
         options.AddArgument("--disable-dev-shm-usage");
         options.AddArgument("--log-level=3");
         options.AddArgument("--output=/dev/null");
-
         _driver = new ChromeDriver(service, options);
-        _driver.Manage().Window.Minimize();
-        _wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(30));
+
+        _wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(60));
     }
 
     public void Dispose()
@@ -48,7 +62,7 @@ public class RestartDomain : IDisposable
             _driver.Navigate()
                         .GoToUrl("http://192.168.10.6:888/Security/Update/RestartAppDomain");
 
-            if (_driver.Title == "HRIS Login")
+            if (_driver.Title.Contains("Login"))
             {
                 _driver.FindElement(By.Id("LoginID"))
                         .SendKeys("SUPER");
@@ -68,20 +82,18 @@ public class RestartDomain : IDisposable
             Console.WriteLine("Restart page loaded.\n");
 
             _driver.FindElement(By.Id("submit")).Click();
-
-            _wait.Until(ExpectedConditions.ElementExists(By.Id("LoginID")));
-
-            Console.WriteLine("Restarted succesfully.\n");
-            this.ClosingSequence();
         }
         catch
         {
-
             Console.WriteLine("Failed to restart the domain. Please do it manually.\nSorry :D\n");
-            this.ClosingSequence();
         }
 
 
+
+        _wait.Until(ExpectedConditions.ElementExists(By.Id("LoginID")));
+
+        Console.WriteLine("Restarted succesfully.\n");
+        this.ClosingSequence();
 
     }
     public void ClosingSequence()
