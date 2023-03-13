@@ -60,7 +60,7 @@ public class RestartDomain : IDisposable
         try
         {
             _driver.Navigate()
-                        .GoToUrl("http://192.168.10.6:888/Security/Update/RestartAppDomain");
+                        .GoToUrl($"http://{_url}/Security/Update/RestartAppDomain");
 
             if (_driver.Title.Contains("Login"))
             {
