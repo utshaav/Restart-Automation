@@ -1,6 +1,7 @@
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Support.UI;
+using RestartAutomation;
 using SeleniumExtras.WaitHelpers;
 
 public class RestartDomain : IDisposable
@@ -8,8 +9,9 @@ public class RestartDomain : IDisposable
     private readonly IWebDriver _driver;
     private readonly WebDriverWait _wait;
     private string _url = "192.168.10.6:888";
+    private readonly LoginCredentials _loginCred;
 
-    public RestartDomain(string url, bool isManual) : this()
+    public RestartDomain(string url, bool isManual, LoginCredentials loginCred) : this(loginCred)
     {
         _url = url;
         Console.WriteLine($"http://{url}/");
@@ -19,7 +21,7 @@ public class RestartDomain : IDisposable
         }
     }
 
-    public RestartDomain()
+    public RestartDomain(LoginCredentials loginCred)
     {
         var baseDir = AppDomain.CurrentDomain.BaseDirectory;
         ChromeDriverService service = ChromeDriverService.CreateDefaultService();
@@ -45,6 +47,8 @@ public class RestartDomain : IDisposable
         _driver = new ChromeDriver(service, options);
 
         _wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(60));
+
+        _loginCred = loginCred;
     }
 
     public void Dispose()
@@ -65,11 +69,11 @@ public class RestartDomain : IDisposable
             if (_driver.Title.Contains("Login"))
             {
                 _driver.FindElement(By.Id("LoginID"))
-                        .SendKeys("SUPER");
+                        .SendKeys(_loginCred.UserName);
 
 
                 _driver.FindElement(By.Id("LoginPassword"))
-                    .SendKeys("sup@nimble");
+                    .SendKeys(_loginCred.Password);
 
                 _driver.FindElement(By.Id("btnSubmit")).Click();
                 Console.WriteLine("Logging into the system.\n");

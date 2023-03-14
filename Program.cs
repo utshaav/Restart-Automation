@@ -1,4 +1,17 @@
 ﻿// See https://aka.ms/new-console-template for more information
+
+using Microsoft.Extensions.Configuration;
+using RestartAutomation;
+
+// Application code should start here.
+
+
+IConfiguration config = new ConfigurationBuilder()
+    .AddJsonFile("appsettings.json")
+    .AddEnvironmentVariables()
+    .Build();
+
+
 Console.WriteLine("Hello, World!");
 
 Console.WriteLine("\nUse ⬆️ and ⬇️ arrow to navigate:");
@@ -11,7 +24,7 @@ string color = "✅            \u001b[32m";
 string emptyString = "             ";
 string url = "";
 bool isManual = false;
-
+LoginCredentials loginCredentials = new LoginCredentials();
 while (!isSelected)
 {
     Console.SetCursorPosition(left, top);
@@ -44,17 +57,26 @@ switch (option)
 {
     case 1:
         url = "192.168.10.6:888";
+        loginCredentials = config.GetRequiredSection("Credentials").GetRequiredSection("DEV").Get<LoginCredentials>()!;
         break;
     case 2:
         url = "192.168.10.6:5555";
+        loginCredentials = config.GetRequiredSection("Credentials").GetRequiredSection("QA").Get<LoginCredentials>()!;
         break;
     case 3:
         Console.WriteLine("Enter the url to restart");
         url = Console.ReadLine() ?? "192.168.10.6:888";
+
+        Console.WriteLine($"Enter the usernme for {url}");
+        loginCredentials.UserName = Console.ReadLine() ?? "";
+
+        Console.WriteLine($"Enter the password for {url}");
+        loginCredentials.Password = Console.ReadLine() ?? "";
+
         break;
 }
-
-RestartDomain restart = new RestartDomain(url, isManual);
+Console.WriteLine(loginCredentials.UserName);
+RestartDomain restart = new RestartDomain(url, isManual, loginCredentials);
 
 
 Console.WriteLine("Initiating restart sequence sequence");
