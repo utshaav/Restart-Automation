@@ -1,7 +1,7 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
 using Microsoft.Extensions.Configuration;
-using RestartAutomation;
+using RestartAutomation.Modules;
 
 // Application code should start here.
 
@@ -17,67 +17,199 @@ Console.WriteLine("Hello, World!");
 Console.WriteLine("\nUse ⬆️ and ⬇️ arrow to navigate:");
 
 ConsoleKeyInfo key;
-int option = 1;
-bool isSelected = false;
+int option = 1, moduleOption = 1, action = 1;
+bool isDomainSelected = false, isModuleSelected = false, isManual = false, isActionSelected = false;
 (int left, int top) = Console.GetCursorPosition();
 string color = "✅            \u001b[32m";
 string emptyString = "             ";
 string url = "";
-bool isManual = false;
 LoginCredentials loginCredentials = new LoginCredentials();
-while (!isSelected)
+
+
+while (!isActionSelected)
 {
     Console.SetCursorPosition(left, top);
-    Console.WriteLine($"{(option == 1 ? color : emptyString)}Restart 10.6:888 server\u001b[0m");
-    Console.WriteLine($"{(option == 2 ? color : emptyString)}Restart 10.6:5555 server\u001b[0m");
-    Console.WriteLine($"{(option == 3 ? color : emptyString)}Restart manual server\u001b[0m");
+    Console.WriteLine($"{(action == 1 ? color : emptyString)}Only restart the domain\u001b[0m");
+    Console.WriteLine($"{(action == 2 ? color : emptyString)}Publish file and restart domain\u001b[0m");
+    Console.WriteLine($"{(action == 3 ? color : emptyString)}exit\u001b[0m");
 
     key = Console.ReadKey(true);
     switch (key.Key)
     {
         case ConsoleKey.UpArrow:
-            option--;
-            option = option <= 0 ? 3 : option;
-            isManual = false;
+            action--;
+            action = action <= 0 ? 3 : action;
             break;
 
         case ConsoleKey.DownArrow:
-            option++;
-            option = option >= 4 ? 1 : option;
-            isManual = false;
+            action++;
+            action = action >= 4 ? 1 : action;
             break;
+
         case ConsoleKey.Enter:
-            isSelected = true;
-            isManual = true;
+            isActionSelected = true;
             break;
     }
 }
 
-switch (option)
+if (action == 3) Environment.Exit(1);
+
+if (action == 2) ModuleSelection();
+
+(left, top) = Console.GetCursorPosition();
+
+RestartSequence();
+
+
+
+
+
+
+void RestartSequence()
 {
-    case 1:
-        url = "192.168.10.6:888";
-        loginCredentials = config.GetRequiredSection("Credentials").GetRequiredSection("DEV").Get<LoginCredentials>()!;
-        break;
-    case 2:
-        url = "192.168.10.6:5555";
-        loginCredentials = config.GetRequiredSection("Credentials").GetRequiredSection("QA").Get<LoginCredentials>()!;
-        break;
-    case 3:
-        Console.WriteLine("Enter the url to restart");
-        url = Console.ReadLine() ?? "192.168.10.6:888";
 
-        Console.WriteLine($"Enter the usernme for {url}");
-        loginCredentials.UserName = Console.ReadLine() ?? "";
 
-        Console.WriteLine($"Enter the password for {url}");
-        loginCredentials.Password = Console.ReadLine() ?? "";
+    while (!isDomainSelected)
+    {
+        Console.SetCursorPosition(left, top);
+        Console.WriteLine($"{(option == 1 ? color : emptyString)}Restart 10.6:888 server\u001b[0m");
+        Console.WriteLine($"{(option == 2 ? color : emptyString)}Restart 10.6:5555 server\u001b[0m");
+        Console.WriteLine($"{(option == 3 ? color : emptyString)}Restart manual server\u001b[0m");
 
-        break;
+        key = Console.ReadKey(true);
+        switch (key.Key)
+        {
+            case ConsoleKey.UpArrow:
+                option--;
+                option = option <= 0 ? 3 : option;
+                isManual = false;
+                break;
+
+            case ConsoleKey.DownArrow:
+                option++;
+                option = option >= 4 ? 1 : option;
+                isManual = false;
+                break;
+            case ConsoleKey.Enter:
+                isDomainSelected = true;
+                isManual = true;
+                break;
+        }
+    }
+
+    switch (option)
+    {
+        case 1:
+            url = "192.168.10.6:888";
+            loginCredentials = config.GetRequiredSection("Credentials").GetRequiredSection("DEV").Get<LoginCredentials>()!;
+            break;
+        case 2:
+            url = "192.168.10.6:5555";
+            loginCredentials = config.GetRequiredSection("Credentials").GetRequiredSection("QA").Get<LoginCredentials>()!;
+            break;
+        case 3:
+            Console.WriteLine("Enter the url to restart");
+            url = Console.ReadLine() ?? "192.168.10.6:888";
+
+            Console.WriteLine($"Enter the usernme for {url}");
+            loginCredentials.UserName = Console.ReadLine() ?? "";
+
+            Console.WriteLine($"Enter the password for {url}");
+            loginCredentials.Password = Console.ReadLine() ?? "";
+
+            break;
+    }
+    Console.WriteLine(loginCredentials.UserName);
+    RestartDomain restart = new RestartDomain(url, isManual, loginCredentials);
+
+
+    Console.WriteLine("Initiating restart sequence sequence");
+    restart.InitiateDestructionSequence();
 }
-Console.WriteLine(loginCredentials.UserName);
-RestartDomain restart = new RestartDomain(url, isManual, loginCredentials);
 
 
-Console.WriteLine("Initiating restart sequence sequence");
-restart.InitiateDestructionSequence();
+void ModuleSelection()
+{
+        PathInfo pathInfo = config.GetRequiredSection("PathInfo").Get<PathInfo>() ?? new();
+
+        
+    while (!isModuleSelected)
+    {
+        Console.SetCursorPosition(left, top);
+        int i = 1;
+        foreach(var item in pathInfo.ModuleInfos){
+                Console.WriteLine($"{(moduleOption == i ? color : emptyString)}{item.Name}\u001b[0m");
+                i++;
+
+            }
+                Console.WriteLine($"{(moduleOption == i ? color : emptyString)}Cancle Module update and go to restart\u001b[0m");
+        
+       
+
+        key = Console.ReadKey(true);
+        switch (key.Key)
+        {
+            case ConsoleKey.UpArrow:
+                moduleOption--;
+                moduleOption = moduleOption <= 0 ? pathInfo.ModuleInfos.Count() + 1 : moduleOption;
+                break;
+
+            case ConsoleKey.DownArrow:
+                moduleOption++;
+                moduleOption = moduleOption > pathInfo.ModuleInfos.Count() + 1 ? 1 : moduleOption;
+                break;
+
+            case ConsoleKey.Enter:
+                isModuleSelected = true;
+                break;
+        }
+    }
+
+    Console.WriteLine("\n");
+
+    if (moduleOption !=  pathInfo.ModuleInfos.Count() + 1)
+    {
+
+        ModuleInfo selectedModel = pathInfo.ModuleInfos.Where(x => x.Option == moduleOption).FirstOrDefault() ?? new();
+
+       isModuleSelected = false;
+        moduleOption = 1;
+        while (!isModuleSelected)
+        {
+            Console.SetCursorPosition(left, top);
+            int i = 1;
+            foreach(var item in selectedModel.Areas){
+                Console.WriteLine($"{(moduleOption == i ? color : emptyString)}{item}\u001b[0m");
+                i++;
+
+            }
+            
+            key = Console.ReadKey(true);
+            switch (key.Key)
+            {
+                case ConsoleKey.UpArrow:
+                    moduleOption--;
+                    moduleOption = moduleOption <= 0 ? selectedModel.Areas.Count() : moduleOption;
+                    break;
+
+                case ConsoleKey.DownArrow:
+                    moduleOption++;
+                    moduleOption = moduleOption > selectedModel.Areas.Count() ? 1 : moduleOption;
+                    break;
+
+                case ConsoleKey.Enter:
+                    isModuleSelected = true;
+                    break;
+            }
+        }
+
+            string sourcePathString = $"{pathInfo.Source}/{selectedModel.Name}/Areas/{selectedModel.Areas[moduleOption-1]}";
+            string destinationPathString = $"{pathInfo.Destination}/{selectedModel.Name}/Areas/{selectedModel.Areas[moduleOption-1]}";
+        Console.WriteLine(sourcePathString);
+        Console.WriteLine(destinationPathString);
+    }
+
+
+
+
+}

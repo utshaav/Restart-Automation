@@ -1,7 +1,7 @@
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Support.UI;
-using RestartAutomation;
+using RestartAutomation.Modules;
 using SeleniumExtras.WaitHelpers;
 
 public class RestartDomain : IDisposable

@@ -1,5 +1,5 @@
 #nullable disable
-namespace RestartAutomation
+namespace RestartAutomation.Modules
 {
     public class LoginCredentials
     {
