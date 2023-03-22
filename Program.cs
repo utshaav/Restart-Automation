@@ -1,8 +1,9 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
 using Microsoft.Extensions.Configuration;
+using RestartAutomation;
 using RestartAutomation.Modules;
-
+Global.infoString = "";
 // Application code should start here.
 
 
@@ -16,8 +17,7 @@ IConfiguration config = new ConfigurationBuilder()
 
 Console.WriteLine("Hello, World!");
 
-Console.WriteLine("\nUse ⬆️ and ⬇️ arrow to navigate:");
-
+Console.WriteLine("\nUse ⬆ and ⬇ arrow to navigate:");
 ConsoleKeyInfo key;
 int option = 1, moduleOption = 1, action = 1;
 bool isDomainSelected = false, isModuleSelected = false, isManual = false, isActionSelected = false;
@@ -68,6 +68,7 @@ RestartSequence();
 
 void RestartSequence()
 {
+    Console.Clear();
 
     Console.SetCursorPosition(initialLeft, initialTop);
     Console.WriteLine("Select Domain to restart");
@@ -102,6 +103,8 @@ void RestartSequence()
         }
     }
 
+
+
     switch (option)
     {
         case 1:
@@ -124,17 +127,20 @@ void RestartSequence()
 
             break;
     }
-    Console.WriteLine(loginCredentials.UserName);
+    Console.Clear();
+    Global.infoString += $"\nSelected Domain : {url}";
+    Global.infoString += $"\nInitiating restart sequence sequence";
+    Console.WriteLine(Global.infoString);
+    // Console.WriteLine(loginCredentials.UserName);
     RestartDomain restart = new RestartDomain(url, isManual, loginCredentials);
-
-
-    Console.WriteLine("Initiating restart sequence sequence");
+    Console.WriteLine();
     restart.InitiateDestructionSequence();
 }
 
 
 void ModuleSelection()
 {
+    Console.Clear();
     Console.SetCursorPosition(initialLeft, initialTop);
     Console.WriteLine("Select Module");
     PathInfo pathInfo = config.GetRequiredSection("PathInfo").Get<PathInfo>() ?? new();
@@ -220,13 +226,20 @@ void ModuleSelection()
             }
         }
 
-        string sourcePathString = $"{pathInfo.Source}/{selectedModel.Name}/Areas/{selectedModel.Areas[moduleOption - 1]}";
-        string destinationPathString = $"{pathInfo.Destination}/{selectedModel.Name}/Areas/{selectedModel.Areas[moduleOption - 1]}";
-        Console.WriteLine(sourcePathString);
-        Console.WriteLine(destinationPathString);
+        string sourcePathString = $"{pathInfo.Source}\\{selectedModel.Name}\\Nimble.Web\\Areas\\{selectedModel.Areas[moduleOption - 1]}";
+        string destinationPathString = $"{pathInfo.Destination}\\{selectedModel.Areas[moduleOption - 1]}";
+        Global.infoString += $"\nSource path: {sourcePathString}";
+        Global.infoString += $"\nDestination path: {destinationPathString}";
+        Console.WriteLine(Global.infoString);
+        new CopyFiles(sourcePathString, destinationPathString, pathInfo.FilesToCopy).Start();
     }
 
 
 
 
+}
+
+public static class Global
+{
+    public static string infoString;
 }
