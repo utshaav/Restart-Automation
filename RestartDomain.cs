@@ -56,6 +56,8 @@ public class RestartDomain : IDisposable
         _driver.Close();
         _driver.Quit();
         _driver.Dispose();
+        Console.WriteLine("Press any key to exit.");
+        Console.ReadKey();
         Environment.Exit(1);
     }
 
@@ -79,31 +81,36 @@ public class RestartDomain : IDisposable
                 Console.WriteLine("Logging into the system.\n");
             }
 
+            try
+            {
+                _wait.Until(ExpectedConditions.ElementExists(By.Id("submit")));
+                Console.WriteLine("Restart page loaded.\n");
 
-            Console.WriteLine("Waiting for restart page to load.\n");
+                _driver.FindElement(By.Id("submit")).Click();
+            }
+            catch
+            {
+                Console.WriteLine("Failed to login");
+                this.ClosingSequence();
+                throw;
+            }
+            _wait.Until(ExpectedConditions.ElementExists(By.Id("LoginID")));
 
-            _wait.Until(ExpectedConditions.ElementExists(By.Id("submit")));
-            Console.WriteLine("Restart page loaded.\n");
-
-            _driver.FindElement(By.Id("submit")).Click();
+            Console.WriteLine("Restarted succesfully.\n");
         }
         catch
         {
             Console.WriteLine("Failed to restart the domain. Please do it manually.\nSorry :D\n");
         }
+        finally
+        {
 
-
-
-        _wait.Until(ExpectedConditions.ElementExists(By.Id("LoginID")));
-
-        Console.WriteLine("Restarted succesfully.\n");
-        this.ClosingSequence();
+            this.ClosingSequence();
+        }
 
     }
     public void ClosingSequence()
     {
-        Console.WriteLine("Press any key to exit.");
-        Console.ReadKey();
         this.Dispose();
     }
 }

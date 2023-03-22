@@ -11,6 +11,8 @@ IConfiguration config = new ConfigurationBuilder()
     .AddEnvironmentVariables()
     .Build();
 
+(int initialLeft, int initialTop) = Console.GetCursorPosition();
+
 
 Console.WriteLine("Hello, World!");
 
@@ -48,6 +50,7 @@ while (!isActionSelected)
 
         case ConsoleKey.Enter:
             isActionSelected = true;
+            Console.Clear();
             break;
     }
 }
@@ -55,8 +58,6 @@ while (!isActionSelected)
 if (action == 3) Environment.Exit(1);
 
 if (action == 2) ModuleSelection();
-
-(left, top) = Console.GetCursorPosition();
 
 RestartSequence();
 
@@ -68,6 +69,10 @@ RestartSequence();
 void RestartSequence()
 {
 
+    Console.SetCursorPosition(initialLeft, initialTop);
+    Console.WriteLine("Select Domain to restart");
+
+    (left, top) = Console.GetCursorPosition();
 
     while (!isDomainSelected)
     {
@@ -130,21 +135,25 @@ void RestartSequence()
 
 void ModuleSelection()
 {
-        PathInfo pathInfo = config.GetRequiredSection("PathInfo").Get<PathInfo>() ?? new();
+    Console.SetCursorPosition(initialLeft, initialTop);
+    Console.WriteLine("Select Module");
+    PathInfo pathInfo = config.GetRequiredSection("PathInfo").Get<PathInfo>() ?? new();
 
-        
+    (left, top) = Console.GetCursorPosition();
     while (!isModuleSelected)
     {
         Console.SetCursorPosition(left, top);
-        int i = 1;
-        foreach(var item in pathInfo.ModuleInfos){
-                Console.WriteLine($"{(moduleOption == i ? color : emptyString)}{item.Name}\u001b[0m");
-                i++;
 
-            }
-                Console.WriteLine($"{(moduleOption == i ? color : emptyString)}Cancle Module update and go to restart\u001b[0m");
-        
-       
+        int i = 1;
+        foreach (var item in pathInfo.ModuleInfos)
+        {
+            Console.WriteLine($"{(moduleOption == i ? color : emptyString)}{item.Name}\u001b[0m");
+            i++;
+
+        }
+        Console.WriteLine($"{(moduleOption == i ? color : emptyString)}Cancle Module update and go to restart\u001b[0m");
+
+
 
         key = Console.ReadKey(true);
         switch (key.Key)
@@ -161,29 +170,36 @@ void ModuleSelection()
 
             case ConsoleKey.Enter:
                 isModuleSelected = true;
+                Console.Clear();
                 break;
         }
     }
 
     Console.WriteLine("\n");
 
-    if (moduleOption !=  pathInfo.ModuleInfos.Count() + 1)
+    if (moduleOption != pathInfo.ModuleInfos.Count() + 1)
     {
+
+        Console.SetCursorPosition(initialLeft, initialTop);
+        Console.WriteLine("Select Area");
+
+        (left, top) = Console.GetCursorPosition();
 
         ModuleInfo selectedModel = pathInfo.ModuleInfos.Where(x => x.Option == moduleOption).FirstOrDefault() ?? new();
 
-       isModuleSelected = false;
+        isModuleSelected = false;
         moduleOption = 1;
         while (!isModuleSelected)
         {
             Console.SetCursorPosition(left, top);
             int i = 1;
-            foreach(var item in selectedModel.Areas){
+            foreach (var item in selectedModel.Areas)
+            {
                 Console.WriteLine($"{(moduleOption == i ? color : emptyString)}{item}\u001b[0m");
                 i++;
 
             }
-            
+
             key = Console.ReadKey(true);
             switch (key.Key)
             {
@@ -199,12 +215,13 @@ void ModuleSelection()
 
                 case ConsoleKey.Enter:
                     isModuleSelected = true;
+                    Console.Clear();
                     break;
             }
         }
 
-            string sourcePathString = $"{pathInfo.Source}/{selectedModel.Name}/Areas/{selectedModel.Areas[moduleOption-1]}";
-            string destinationPathString = $"{pathInfo.Destination}/{selectedModel.Name}/Areas/{selectedModel.Areas[moduleOption-1]}";
+        string sourcePathString = $"{pathInfo.Source}/{selectedModel.Name}/Areas/{selectedModel.Areas[moduleOption - 1]}";
+        string destinationPathString = $"{pathInfo.Destination}/{selectedModel.Name}/Areas/{selectedModel.Areas[moduleOption - 1]}";
         Console.WriteLine(sourcePathString);
         Console.WriteLine(destinationPathString);
     }
