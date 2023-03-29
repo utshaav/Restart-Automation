@@ -40,11 +40,6 @@ namespace RestartAutomation
                         originalFile.CopyTo(destFile.FullName, true);
                     }
                 }
-                else
-                {
-                    Directory.CreateDirectory(destFile.DirectoryName!);
-                    originalFile.CopyTo(destFile.FullName, false);
-                }
             });
         }
 
